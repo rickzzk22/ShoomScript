@@ -1,0 +1,239 @@
+-- ESP + TP + AUTO COLLECT Shoom (MAPA TODO)
+local ESP_NAME = "ShoomESP"
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local LocalPlayer = Players.LocalPlayer
+local espAtivo = true
+local autoAtivo = false
+local tracked = {}
+
+local function isShoom(part)
+    return part.Name == "Shoom"
+end
+
+local function isColetavel(part)
+    return part.Transparency < 1
+end
+
+local function createESP(part)
+    if part:FindFirstChild(ESP_NAME) then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = ESP_NAME
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.FillColor = Color3.fromRGB(255, 50, 50)
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Enabled = espAtivo
+    highlight.Parent = part
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = ESP_NAME
+    billboard.Adornee = part
+    billboard.Size = UDim2.new(0, 150, 0, 30)
+    billboard.AlwaysOnTop = true
+    billboard.StudsOffset = Vector3.new(0, 6, 0)
+    billboard.MaxDistance = 1200
+    billboard.Enabled = espAtivo
+    billboard.Parent = part
+
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(1, 0, 1, 0)
+    text.BackgroundTransparency = 1
+    text.Text = "🍄 SHOOM"
+    text.TextScaled = true
+    text.Font = Enum.Font.GothamBold
+    text.TextStrokeTransparency = 0.3
+    text.TextColor3 = Color3.fromRGB(255, 80, 80)
+    text.Parent = billboard
+
+    part.Destroying:Connect(function()
+        if highlight and highlight.Parent then highlight:Destroy() end
+        if billboard and billboard.Parent then billboard:Destroy() end
+    end)
+end
+
+local function pressE()
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function getTodosShoom()
+    local char = LocalPlayer.Character
+    if not char then return {} end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return {} end
+
+    local lista = {}
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") and isShoom(v) and isColetavel(v) then
+            local dist = (hrp.Position - v.Position).Magnitude
+            table.insert(lista, {part = v, dist = dist})
+        end
+    end
+
+    table.sort(lista, function(a, b) return a.dist < b.dist end)
+    return lista
+end
+
+local function tpEColetar(part)
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    hrp.CFrame = part.CFrame + Vector3.new(0, 4, 0)
+    task.wait(0.4)
+    pressE()
+    task.wait(0.6)
+end
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ShoomGUI"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = LocalPlayer.PlayerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 180, 0, 195)
+frame.Position = UDim2.new(0, 20, 0.5, -97)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+title.BorderSizePixel = 0
+title.Text = "🍄 SHOOM ESP"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+title.Parent = frame
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
+
+local btnEsp = Instance.new("TextButton")
+btnEsp.Size = UDim2.new(1, -20, 0, 30)
+btnEsp.Position = UDim2.new(0, 10, 0, 38)
+btnEsp.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+btnEsp.BorderSizePixel = 0
+btnEsp.Text = "ESP: ON"
+btnEsp.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnEsp.Font = Enum.Font.GothamBold
+btnEsp.TextScaled = true
+btnEsp.Parent = frame
+Instance.new("UICorner", btnEsp).CornerRadius = UDim.new(0, 6)
+
+btnEsp.MouseButton1Click:Connect(function()
+    espAtivo = not espAtivo
+    btnEsp.Text = espAtivo and "ESP: ON" or "ESP: OFF"
+    btnEsp.BackgroundColor3 = espAtivo
+        and Color3.fromRGB(0, 180, 0)
+        or Color3.fromRGB(180, 0, 0)
+
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v.Name == ESP_NAME then
+            if v:IsA("Highlight") or v:IsA("BillboardGui") then
+                v.Enabled = espAtivo
+            end
+        end
+    end
+end)
+
+local btnTp = Instance.new("TextButton")
+btnTp.Size = UDim2.new(1, -20, 0, 30)
+btnTp.Position = UDim2.new(0, 10, 0, 78)
+btnTp.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+btnTp.BorderSizePixel = 0
+btnTp.Text = "TP Shoom"
+btnTp.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnTp.Font = Enum.Font.GothamBold
+btnTp.TextScaled = true
+btnTp.Parent = frame
+Instance.new("UICorner", btnTp).CornerRadius = UDim.new(0, 6)
+
+btnTp.MouseButton1Click:Connect(function()
+    local lista = getTodosShoom()
+    if lista[1] then
+        tpEColetar(lista[1].part)
+    else
+        warn("Nenhum Shoom encontrado!")
+    end
+end)
+
+local btnAuto = Instance.new("TextButton")
+btnAuto.Size = UDim2.new(1, -20, 0, 30)
+btnAuto.Position = UDim2.new(0, 10, 0, 118)
+btnAuto.BackgroundColor3 = Color3.fromRGB(100, 0, 180)
+btnAuto.BorderSizePixel = 0
+btnAuto.Text = "AUTO: OFF"
+btnAuto.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnAuto.Font = Enum.Font.GothamBold
+btnAuto.TextScaled = true
+btnAuto.Parent = frame
+Instance.new("UICorner", btnAuto).CornerRadius = UDim.new(0, 6)
+
+btnAuto.MouseButton1Click:Connect(function()
+    autoAtivo = not autoAtivo
+    btnAuto.Text = autoAtivo and "AUTO: ON" or "AUTO: OFF"
+    btnAuto.BackgroundColor3 = autoAtivo
+        and Color3.fromRGB(0, 180, 100)
+        or Color3.fromRGB(100, 0, 180)
+end)
+
+-- CONTADOR
+local btnCount = Instance.new("TextLabel")
+btnCount.Size = UDim2.new(1, -20, 0, 24)
+btnCount.Position = UDim2.new(0, 10, 0, 158)
+btnCount.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btnCount.BorderSizePixel = 0
+btnCount.Text = "🍄 Disponíveis: ..."
+btnCount.TextColor3 = Color3.fromRGB(255, 220, 100)
+btnCount.Font = Enum.Font.GothamBold
+btnCount.TextScaled = true
+btnCount.Parent = frame
+Instance.new("UICorner", btnCount).CornerRadius = UDim.new(0, 6)
+
+-- AUTO COLLECT LOOP
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if autoAtivo then
+            local lista = getTodosShoom()
+            btnCount.Text = "🍄 Disponíveis: " .. #lista
+            if #lista == 0 then
+                task.wait(3)
+            else
+                for _, item in ipairs(lista) do
+                    if not autoAtivo then break end
+                    if item.part and item.part.Parent and isColetavel(item.part) then
+                        tpEColetar(item.part)
+                    end
+                end
+                task.wait(1)
+            end
+        else
+            -- Atualiza contador mesmo com AUTO off
+            local lista = getTodosShoom()
+            btnCount.Text = "🍄 Disponíveis: " .. #lista
+        end
+    end
+end)
+
+-- SCANNER
+while true do
+    task.wait(3)
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") and not tracked[v] and isShoom(v) then
+            tracked[v] = true
+            createESP(v)
+            v.Destroying:Connect(function() tracked[v] = nil end)
+        end
+    end
+end
