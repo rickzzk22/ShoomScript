@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 -- =====================
 -- SENHA
 -- =====================
-local rickseven = "SUASENHA"
+local SENHA_CORRETA = "ricksixseven"
 
 local senhaGui = Instance.new("ScreenGui")
 senhaGui.Name = "SenhaGUI"
@@ -71,7 +71,6 @@ senhaBotao.TextScaled = true
 senhaBotao.Parent = senhaFrame
 Instance.new("UICorner", senhaBotao).CornerRadius = UDim.new(0, 6)
 
--- Espera senha correta
 local senhaOk = false
 senhaBotao.MouseButton1Click:Connect(function()
     if senhaInput.Text == SENHA_CORRETA then
@@ -83,7 +82,6 @@ senhaBotao.MouseButton1Click:Connect(function()
     end
 end)
 
--- Aguarda senha ser digitada correta
 repeat task.wait(0.1) until senhaOk
 
 -- =====================
