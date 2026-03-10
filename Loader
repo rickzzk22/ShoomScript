@@ -3,6 +3,92 @@ local ESP_NAME = "ShoomESP"
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local LocalPlayer = Players.LocalPlayer
+
+-- =====================
+-- SENHA
+-- =====================
+local SENHA_CORRETA = "SUASENHA"
+
+local senhaGui = Instance.new("ScreenGui")
+senhaGui.Name = "SenhaGUI"
+senhaGui.ResetOnSpawn = false
+senhaGui.IgnoreGuiInset = true
+senhaGui.Parent = LocalPlayer.PlayerGui
+
+local senhaFrame = Instance.new("Frame")
+senhaFrame.Size = UDim2.new(0, 260, 0, 140)
+senhaFrame.Position = UDim2.new(0.5, -130, 0.5, -70)
+senhaFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+senhaFrame.BorderSizePixel = 0
+senhaFrame.Parent = senhaGui
+Instance.new("UICorner", senhaFrame).CornerRadius = UDim.new(0, 8)
+
+local senhaTitle = Instance.new("TextLabel")
+senhaTitle.Size = UDim2.new(1, 0, 0, 35)
+senhaTitle.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+senhaTitle.BorderSizePixel = 0
+senhaTitle.Text = "🍄 SHOOM ESP - SENHA"
+senhaTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+senhaTitle.Font = Enum.Font.GothamBold
+senhaTitle.TextScaled = true
+senhaTitle.Parent = senhaFrame
+Instance.new("UICorner", senhaTitle).CornerRadius = UDim.new(0, 8)
+
+local senhaInput = Instance.new("TextBox")
+senhaInput.Size = UDim2.new(1, -20, 0, 35)
+senhaInput.Position = UDim2.new(0, 10, 0, 43)
+senhaInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+senhaInput.BorderSizePixel = 0
+senhaInput.Text = ""
+senhaInput.PlaceholderText = "Digite a senha..."
+senhaInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+senhaInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+senhaInput.Font = Enum.Font.Gotham
+senhaInput.TextScaled = true
+senhaInput.ClearTextOnFocus = true
+senhaInput.Parent = senhaFrame
+Instance.new("UICorner", senhaInput).CornerRadius = UDim.new(0, 6)
+
+local senhaErro = Instance.new("TextLabel")
+senhaErro.Size = UDim2.new(1, -20, 0, 20)
+senhaErro.Position = UDim2.new(0, 10, 0, 82)
+senhaErro.BackgroundTransparency = 1
+senhaErro.Text = ""
+senhaErro.TextColor3 = Color3.fromRGB(255, 80, 80)
+senhaErro.Font = Enum.Font.Gotham
+senhaErro.TextScaled = true
+senhaErro.Parent = senhaFrame
+
+local senhaBotao = Instance.new("TextButton")
+senhaBotao.Size = UDim2.new(1, -20, 0, 28)
+senhaBotao.Position = UDim2.new(0, 10, 0, 103)
+senhaBotao.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+senhaBotao.BorderSizePixel = 0
+senhaBotao.Text = "Entrar"
+senhaBotao.TextColor3 = Color3.fromRGB(255, 255, 255)
+senhaBotao.Font = Enum.Font.GothamBold
+senhaBotao.TextScaled = true
+senhaBotao.Parent = senhaFrame
+Instance.new("UICorner", senhaBotao).CornerRadius = UDim.new(0, 6)
+
+-- Espera senha correta
+local senhaOk = false
+senhaBotao.MouseButton1Click:Connect(function()
+    if senhaInput.Text == SENHA_CORRETA then
+        senhaOk = true
+        senhaGui:Destroy()
+    else
+        senhaErro.Text = "❌ Senha incorreta!"
+        senhaInput.Text = ""
+    end
+end)
+
+-- Aguarda senha ser digitada correta
+repeat task.wait(0.1) until senhaOk
+
+-- =====================
+-- SCRIPT PRINCIPAL
+-- =====================
 local espAtivo = true
 local autoAtivo = false
 local tracked = {}
@@ -90,7 +176,7 @@ local function tpEColetar(part)
     task.wait(0.6)
 end
 
--- GUI
+-- GUI PRINCIPAL
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ShoomGUI"
 screenGui.ResetOnSpawn = false
@@ -187,7 +273,6 @@ btnAuto.MouseButton1Click:Connect(function()
         or Color3.fromRGB(100, 0, 180)
 end)
 
--- CONTADOR
 local btnCount = Instance.new("TextLabel")
 btnCount.Size = UDim2.new(1, -20, 0, 24)
 btnCount.Position = UDim2.new(0, 10, 0, 158)
@@ -219,7 +304,6 @@ task.spawn(function()
                 task.wait(1)
             end
         else
-            -- Atualiza contador mesmo com AUTO off
             local lista = getTodosShoom()
             btnCount.Text = "🍄 Disponíveis: " .. #lista
         end
