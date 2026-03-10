@@ -7,7 +7,7 @@ local LocalPlayer = Players.LocalPlayer
 -- =====================
 -- SENHA
 -- =====================
-local SENHA_CORRETA = "SUASENHA"
+local rickseven = "SUASENHA"
 
 local senhaGui = Instance.new("ScreenGui")
 senhaGui.Name = "SenhaGUI"
